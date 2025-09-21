@@ -7,6 +7,11 @@
 ; v0.1.0
 ; =========================================
 
+
+; Physical address of bootsector
+; On IBM compatible machine
+ORG 0x7C00 
+
 ; -------- CONSTANTS ---------
 SCREEN_W        equ
 SCREEN_H        equ
@@ -29,7 +34,7 @@ INT_VIDEO       equ
 INT_KEYBOARD    equ
 
 ; -------- EXTERNAL DATA -----
-; include "palette.inc"
+include "palette.inc"
 
 ; -------- ENTRY POINT -------
 start:
@@ -42,10 +47,10 @@ init_fire_buffer:
 
 ; -------- MAIN LOOP ---------
 main_loop:
-propagate_fire_one_frame:
-blit_fire_to_vram:
-vsync_wait:
-check_key_exit:
+    propagate_fire_one_frame:
+    blit_fire_to_vram:
+    vsync_wait:
+    check_key_exit:
 jmp main_loop
 
 ; -------- RANDOM NUMBER -----
@@ -61,5 +66,6 @@ tmp_vars:
 hang:
 
 ; -------- BOOT SIGNATURE ----
-; pad_to_510:
-; dw 0xAA55
+pad_to_510:
+    times 510-($-$$) db 0
+    dw 0xAA55
