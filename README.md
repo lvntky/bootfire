@@ -59,5 +59,6 @@ bootfire/
 - [Fabien Sanglard - How DOOM fire was done](https://fabiensanglard.net/doom_fire_psx/)
 - [FASM docs](https://flatassembler.net/docs.php)
 
+Also take a look at [Resources](./docs/resources.md)
 ## License
 [MIT](./LICENSE)
