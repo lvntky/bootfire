@@ -1,0 +1,6 @@
+
+0-255 indexed rgb color
+in vga->dac->palette ram
+identifies the colors gonna seen on screen
+
+i generated this with a small python helper script

@@ -63,3 +63,6 @@ A curated set of resources ive used while writing a 512-byte Doom Fire demo in r
    - Blit buffer indices to VRAM at `A000:0000`.
 
 ---
+
+## Assembly sources
+https://www.felixcloutier.com/x86/stos:stosb:stosw:stosd:stosq

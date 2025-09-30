@@ -136,7 +136,7 @@ def main():
     ap.add_argument("--size", type=int, default=37, help="number of palette entries (e.g., 36–48)")
     ap.add_argument("--gamma", default="srgb", help="'srgb' or a float gamma like 2.2")
     ap.add_argument("--format", choices=["fasm", "hex", "raw"], default="fasm")
-    ap.add_argument("--label", default="FirePalette", help="label name for fasm format")
+    ap.add_argument("--label", default="fire_palette_data", help="label name for fasm format")
     ap.add_argument("--outfile", default="", help="output file; stdout if omitted")
     args = ap.parse_args()
 

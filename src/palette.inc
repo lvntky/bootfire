@@ -1,6 +1,4 @@
-
-
-FirePalette:
+fire_palette_data:
   ; index 00
   db 0,0,0
   ; index 01
@@ -75,3 +73,4 @@ FirePalette:
   db 63,62,60
   ; index 36
   db 63,63,63
+fire_palette_end:

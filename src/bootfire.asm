@@ -1,6 +1,6 @@
-; =========================================
 ; Bootfire
 ;
+; =========================================
 ; single-stage boot sector demo
 ; sets video mode, installs palette
 ; runs doom fire algortihm in 512 bytes
@@ -9,77 +9,74 @@
 ; Physical address of bootsector
 ; On IBM compatible machine
 ORG 0x7C00
-; -------- CONSTANTS ---------
-SCREEN_W equ 320
-SCREEN_H equ 200
-PALETTE_SIZE equ 256
-COLOR_MAX equ 255
-VRAM_SEG equ 0xA000
-FIRE_BUF_SEG equ 0x8000
-STACK_SEG equ 0x7000
-STACK_TOP equ 0xFFFE
-PIXELS equ SCREEN_W * SCREEN_H
-; -------- HARDWARE PORTS ----
-PORT_DAC_INDEX equ 0x3C8
-PORT_DAC_DATA equ 0x3C9
-PORT_VSYNC equ 0x3DA
-; -------- BIOS SERVICES -----
-BIOS_VMODE equ 0x00
-BIOS_TEXTMODE equ 0x03
-INT_VIDEO equ 0x10
-INT_KEYBOARD equ 0x16
-
-; -------- ENTRY POINT -------
+        ; -------- CONSTANTS ---------
+        PORT_DAC_INDEX equ 0x3C8
+        PORT_DAC_WRITE equ 0x3C9
+        VRAM_SEG        equ 0xA000
+        SCREEN_W        equ 320
+        SCREEN_H        equ 200
+        
 start:
-    ; set stack
-    mov ax, STACK_SEG
-    mov ss, ax
-    mov sp, STACK_TOP
-
-; -------- MAIN LOOP ---------
-main_loop:
-    call propagate_fire_one_frame
-    call blit_fire_to_vram
-    call vsync_wait
-    call check_key_exit
-    jmp main_loop
-
-; -------- FIRE ALGORITHM ----
-propagate_fire_one_frame:
-    
-    ret
-
-blit_fire_to_vram:
-    
-    ret
-
-vsync_wait:
-    
-    ret
-
-check_key_exit:
-    
-    ret
-
-; -------- RANDOM NUMBER -----
-rng_seed: dw 1
-
-rand8:
-    ret
-
-rand2:
-    
-    ret
-
-; -------- DATA AREA ---------
-fire_buf_ptr: dw 0
-tmp_vars: dw 0
-
-; -------- TERMINATION -------
-hang:
-    jmp hang
+        call set_video_mode
+        call load_palette_to_dac
+        call draw_test_bars
+        call halt
+halt:
+        jmp halt
 
 
+
+set_video_mode:
+        mov ax, 0x13
+        int 0x10
+        ret
+
+load_palette_to_dac:
+        mov dx, PORT_DAC_INDEX
+        xor al, al
+        out dx, al
+
+        mov dx, PORT_DAC_WRITE
+        mov si, fire_palette_data
+        mov cx, fire_palette_end - fire_palette_data
+        rep outsb
+        ret
+
+
+
+draw_test_bars:
+        push ax
+        push es
+        push di
+
+        mov ax, VRAM_SEG
+        mov es, ax
+        xor di, di              ; ES:DI -> A000:0000
+
+        xor bx, bx              ; BX = current color (0..36)
+        mov dx, SCREEN_H        ; outer loop: rows = 200
+
+.y_loop:
+        mov cx, SCREEN_W        ; inner loop: columns = 320
+.x_loop:
+        mov al, bl              ; AL = color
+        stosb                   ; [ES:DI++] = AL
+
+        inc bl                  ; next color
+        cmp bl, 37
+        jb  .no_wrap
+        xor bl, bl              ; wrap to 0
+.no_wrap:
+        loop .x_loop
+
+        dec dx
+        jnz .y_loop
+
+        pop di
+        pop es
+        pop ax
+        ret
+        
 include 'palette.inc'
 ; -------- BOOT SIGNATURE ----
 times 510-($-$$) db 0
