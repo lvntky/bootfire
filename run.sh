@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # run.sh — assemble bootsector, make a 1.44MB image, run in QEMU with debugging support
-# deps: fasm, qemu-system-i386, dd, hexdump (optional), gf (optional)
+# deps: nasm, qemu-system-i386, dd, hexdump (optional), gf (optional)
 set -euo pipefail
 
 # ---------- config ----------
-ASM=${ASM:-fasm}
+ASM=${ASM:-nasm}
 QEMU=${QEMU:-qemu-system-i386}
 SRC=${SRC:-src/bootfire.asm}
 BUILD_DIR=${BUILD_DIR:-build}
@@ -90,7 +90,7 @@ mkdir -p "$BUILD_DIR"
 
 # 1) Assemble boot sector
 echo "[1/4] Assembling: $SRC -> $BOOT_BIN"
-$ASM "$SRC" "$BOOT_BIN"
+$ASM "$SRC" -o "$BOOT_BIN"
 
 # 2) Ensure 512 bytes and boot signature 0x55AA
 size=$(stat -c%s "$BOOT_BIN")

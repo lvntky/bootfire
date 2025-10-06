@@ -1,83 +1,45 @@
-; Bootfire
-;
-; =========================================
-; single-stage boot sector demo
-; sets video mode, installs palette
-; runs doom fire algortihm in 512 bytes
-; v0.1.0
-; =========================================
-; Physical address of bootsector
-; On IBM compatible machine
-ORG 0x7C00
-        ; -------- CONSTANTS ---------
-        PORT_DAC_INDEX equ 0x3C8
-        PORT_DAC_WRITE equ 0x3C9
-        VRAM_SEG        equ 0xA000
-        SCREEN_W        equ 320
-        SCREEN_H        equ 200
-        
+[BITS 16]
+[ORG 0x7C00]
+
 start:
-        call set_video_mode
-        call load_palette_to_dac
-        call draw_test_bars
-        call halt
-halt:
-        jmp halt
+    xor ax, ax
+    mov ds, ax
+    mov es, ax
+    
+    ; Set video mode 13h (320x200, 256 colors)
+    mov ax, 0x0013
+    int 0x10
+    
+    ; Load custom fire palette to DAC
+    xor ax, ax              ; Start at palette index 0
+    mov dx, 0x03C8          ; DAC write index register
+    out dx, al              ; Set starting palette index to 0
+    
+    mov si, fire_palette_data
+    mov cx, 37 * 3          ; 37 colors * 3 bytes each = 111 bytes total
+    inc dx                  ; DX = 0x03C9 (DAC data register)
+    
+load_palette:
+    lodsb                   ; Load byte into AL and increment SI
+    out dx, al              ; Write to DAC
+    loop load_palette
+    
+    ; Fill screen with color index 20 (bright orange/yellow)
+    mov ax, 0xA000          ; Video memory segment
+    mov es, ax
+    xor di, di              ; Start at offset 0
+    mov cx, 64000           ; 320x200 = 64000 pixels
+    mov al, 27              ; Color index to use
+    rep stosb               ; Fill video memory
+    
+    ; Infinite loop
+hang:
+    hlt
+    jmp hang
 
+; Include the palette data from external file
+%include "src/palette.inc"
 
-
-set_video_mode:
-        mov ax, 0x13
-        int 0x10
-        ret
-
-load_palette_to_dac:
-        mov dx, PORT_DAC_INDEX
-        xor al, al
-        out dx, al
-
-        mov dx, PORT_DAC_WRITE
-        mov si, fire_palette_data
-        mov cx, fire_palette_end - fire_palette_data
-        rep outsb
-        ret
-
-
-
-draw_test_bars:
-        push ax
-        push es
-        push di
-
-        mov ax, VRAM_SEG
-        mov es, ax
-        xor di, di              ; ES:DI -> A000:0000
-
-        xor bx, bx              ; BX = current color (0..36)
-        mov dx, SCREEN_H        ; outer loop: rows = 200
-
-.y_loop:
-        mov cx, SCREEN_W        ; inner loop: columns = 320
-.x_loop:
-        mov al, bl              ; AL = color
-        stosb                   ; [ES:DI++] = AL
-
-        inc bl                  ; next color
-        cmp bl, 37
-        jb  .no_wrap
-        xor bl, bl              ; wrap to 0
-.no_wrap:
-        loop .x_loop
-
-        dec dx
-        jnz .y_loop
-
-        pop di
-        pop es
-        pop ax
-        ret
-        
-include 'palette.inc'
-; -------- BOOT SIGNATURE ----
+; Boot sector signature
 times 510-($-$$) db 0
 dw 0xAA55
